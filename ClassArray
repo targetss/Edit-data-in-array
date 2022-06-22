@@ -1,0 +1,303 @@
+class Array
+{
+public:
+
+    Array(int count_sensor, int count_elem) : count_sensor(count_sensor), count_elem(count_elem), num_elem(0), time_now(time(NULL)), data(false)
+    {
+        arr = new int* [count_sensor];
+        for (int i = 0; i < count_sensor; i++)
+        {
+            arr[i] = new int[count_elem] {};
+        }
+
+    }
+
+    Array() : arr(nullptr), count_sensor(count_sensor), count_elem(count_elem), num_elem(0), time_now(time(NULL)), data(false)
+    {
+
+    }
+
+    bool UpdateAverageData()
+    {
+        if (this->data)
+        {
+            data = false;
+            return true;
+        }
+        return false;
+    }
+
+    void Update()
+    {
+        int tt = (time(NULL) - time_now);
+        if (tt > ((10 / count_elem)))
+        {
+            if (num_elem >= count_elem)
+            {
+                num_elem = 0;
+                data = true;
+            }
+            time_now = time(NULL);
+            for (int i = 0; i < count_sensor; i++)
+            {
+                arr[i][num_elem] = rand() % 10;
+            }
+            num_elem++;
+            ShowArray();
+        }
+
+    }
+
+    void ShowArray()
+    {
+        cout << "Array main:" << endl;
+        for (int i = 0; i < count_sensor; i++)
+        {
+            for (int j = 0; j < count_elem; j++)
+            {
+                cout << this->arr[i][j] << '\t';
+            }
+            cout << endl;
+        }
+    }
+
+    /// <summary>
+    /// Возвращает среднее значение со всех датчиков
+    /// </summary>
+    /// <returns>int - среднее значение со всех датчиков</returns>
+    int Average_value()
+    {
+        int count = 0;
+        for (int i = 0; i < count_sensor; i++)
+        {
+            for (int j = 0; j < count_elem; j++)
+            {
+                count += arr[i][j];
+            }
+        }
+        return count / (count_sensor + count_elem);
+    }
+
+    Array(const Array& other)
+    {
+        this->count_sensor = other.count_sensor;
+        this->count_elem = other.count_elem;
+        this->num_elem = other.num_elem;
+        this->time_now = other.time_now;
+        this->data = other.data;
+
+        this->arr = CreateArr();
+
+        for (int i = 0; i < this->count_sensor; i++)
+        {
+            for (int j = 0; j < this->count_elem; j++)
+            {
+                cout << "this arr = " << arr[i][j] << '\t' << "other.arr = " << arr[i][j] << endl;
+                this->arr[i][j] = other.arr[i][j];
+            }
+            cout << endl;
+        }
+    }
+
+    Array& operator = (const Array& other)
+    {
+        if (this->arr != nullptr)
+        {
+            for (int i = 0; i < count_sensor; i++)
+            {
+                delete[] this->arr[i];
+            }
+            delete[] this->arr;
+            arr = nullptr;
+        }
+
+        this->count_sensor = other.count_sensor;
+        this->count_elem = other.count_elem;
+        this->num_elem = other.num_elem;
+        this->time_now = other.time_now;
+        this->data = other.data;
+
+        this->arr = this->CreateArr();
+
+        for (int i = 0; i < count_sensor; i++)
+        {
+            for (int j = 0; j < count_elem; j++)
+            {
+                this->arr[i][j] = other.arr[i][j];
+            }
+        }
+
+        return *this;
+    }
+
+    Array operator + (const Array& other) //возвращается не ссылка потому что this это левый операнд, а other это правый и поэтому равняться будет новому объекту, который мы создаем в самом методе(временный)
+    {
+        Array temp;
+        if (this->count_elem == other.count_elem)
+        {
+            temp.count_sensor = this->count_sensor;
+            temp.count_elem = this->count_elem;
+            temp.num_elem = this->num_elem;
+            temp.time_now = this->time_now;
+            temp.data = this->data;
+
+            temp.arr = new int* [this->count_sensor];
+            for (int i = 0; i < count_sensor; i++)
+            {
+                temp.arr[i] = new int[count_elem];
+            }
+
+            for (int i = 0; i < count_sensor; i++)
+            {
+                for (int j = 0; j < count_elem; j++)
+                {
+                    temp.arr[i][j] = this->arr[i][j] + other.arr[i][j];
+                }
+            }
+        }
+        else
+        {
+            temp.count_sensor = this->count_sensor;
+            temp.count_elem = this->count_elem;
+            temp.num_elem = this->num_elem;
+            temp.time_now = this->time_now;
+            temp.data = this->data;
+
+            temp.arr = new int* [this->count_sensor];
+            for (int i = 0; i < count_sensor; i++)
+            {
+                temp.arr[i] = new int[count_elem];
+            }
+
+            for (int i = 0; i < count_sensor; i++)
+            {
+                for (int j = 0; j < count_elem; j++)
+                {
+                    temp.arr[i][j] = this->arr[i][j] + other.arr[i][j];
+                }
+            }
+        }
+        return temp;
+
+    }
+
+    Array& operator ++ () //префиксная инкремнт ++А
+    {
+        for (int i = 0; i < this->count_sensor; i++)
+        {
+            for (int j = 0; j < this->count_elem; j++)
+            {
+                arr[i][j]++;
+            }
+        }
+        return *this;
+    }
+
+    Array& operator ++(int value) //постфиксная, передаваемый параметр для отличия префикса от постфикса
+    {
+        Array temp(*this);
+
+        for (int i = 0; i < this->count_sensor; i++)
+        {
+            for (int j = 0; j < this->count_elem; j++)
+            {
+                arr[i][j]++;
+            }
+        }
+
+        return temp;
+    }
+
+    int*& operator [](int index1)
+    {
+        if (index1 >= 0 && index1 < count_sensor)
+        {
+            return arr[index1];
+        }
+        else
+        {
+            cout << "Error: вне границ массива" << endl;
+            //return NULL;
+        }
+    }
+
+    bool operator == (const Array& other)
+    {
+        bool equality = true;
+
+        if (this->count_sensor != other.count_sensor)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < count_sensor; i++)
+        {
+            for (int j = 0; j < count_elem; j++)
+            {
+                this->arr[i][j] != other.arr[i][j] ? equality = false : NULL;
+                if (equality == false)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
+    }
+
+    bool operator != (const Array& other)
+    {
+        bool equality = true;
+
+        if (this->count_sensor != other.count_sensor)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < count_sensor; i++)
+        {
+            for (int j = 0; j < count_elem; j++)
+            {
+                this->arr[i][j] == other.arr[i][j] ? equality = false : equality = true;
+                if (equality == true)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    ~Array()
+    {
+        for (int i = 0; i < count_sensor; i++)
+        {
+            delete[] arr[i];
+        }
+        delete[] arr;
+        arr = nullptr;
+    }
+
+private:
+    int** arr;
+    int count_sensor; //Кол-во датчиков
+    int count_elem; //Кол-во обновлений в минуту, т.е кол-во элементов массива
+    int num_elem; //Колво заполненных элементов массива
+
+    int time_now;
+    bool data;
+
+    int** CreateArr()
+    {
+        arr = new int* [count_sensor] {};
+        for (int i = 0; i < count_sensor; i++)
+        {
+            arr[i] = new int[count_elem] {};
+        }
+
+        return arr;
+    }
+};
